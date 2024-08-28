@@ -1,74 +1,81 @@
 name: Custom Vanilla Desktop # Replace this name with your image name
 id: custom-vib # Replace this ID with your image ID
 stages:
-- id: build
-  base: ghcr.io/sakloui/surface-nv:main # Optionally, Replace this image URL with a different one i.e. nvidia:main, etc
-  singlelayer: false
-  labels:
-    maintainer: self-maintained # Optionally, Replace this with your name
-  args:
-    DEBIAN_FRONTEND: noninteractive # Set the image environment as non-interactive
-  
-  # Commands to run first before building the modules
-  runs:
-    commands:
-      - echo 'APT::Install-Recommends "1";' > /etc/apt/apt.conf.d/01norecommends
+  - id: build
+    base: ghcr.io/sakloui/surface-nv:main # Optionally, Replace this image URL with a different one i.e. nvidia:main, etc
+    singlelayer: false
+    labels:
+      maintainer: self-maintained # Optionally, Replace this with your name
+    args:
+      DEBIAN_FRONTEND: noninteractive # Set the image environment as non-interactive
 
-  modules:
-  - name: init-setup
-    type: shell
-    commands:
-    - lpkg --unlock
-    - apt-get update
+    # Commands to run first before building the modules
+    runs:
+      commands:
+        - echo 'APT::Install-Recommends "1";' > /etc/apt/apt.conf.d/01norecommends
 
-  # Put your custom actions behind this comment
-
-  - name: install-packages
-    type: apt
-    source:
-      packages:
-      - qemu-kvm 
-      - libvirt-daemon-system 
-      - libvirt-clients 
-      - bridge-utils 
-      - virt-manager
-
-  - name: run-commands
-    type: shell
-    commands:
-    - systemctl enable libvirtd 
-
-  # Put your custom actions before this comment
-
-  - name: set-image-name-abroot
-    type: includes
-    includes:
-      - modules/80-set-image-abroot-config.yml
-
-  - name: cleanup
-    type: shell
-    commands:
-    - apt-get autoremove -y
-    - apt-get clean
-    - lpkg --lock
-
-  - name: fsguard
-    type: fsguard
-    CustomFsGuard: false
-    FsGuardLocation: "/usr/sbin/FsGuard"
-    GenerateKey: true
-    FilelistPaths: ["/usr/bin"]
     modules:
-      - name: remove-prev-fsguard
+      - name: init-setup
         type: shell
         commands:
-          - rm -rf /FsGuard 
-          - rm -f ./minisign.pub ./minisign.key 
-          - chmod +x /usr/sbin/init
+          - lpkg --unlock
+          - apt-get update
 
-  - name: cleanup2
-    type: shell
-    commands:
-      - rm -rf /tmp/*
-      - rm -rf /var/tmp/*
-      - rm -rf /sources
+      # Put your custom actions behind this comment
+
+      - name: install-packages
+        type: apt
+        source:
+          packages:
+            - qemu-kvm
+            - qemu-system
+            - libvirt-daemon-system
+            - libvirt-clients
+            - bridge-utils
+            - virt-manager
+
+      - name: run-commands
+        type: shell
+        commands:
+          - adduser libvirt-qemu
+          - addgroup libvirt-qemu
+          - addgroup libvirt
+          - addgroup libvirtd
+          - adduser libvirt-qemu libvirt-qemu
+          - adduser libvirt $USER
+          - systemctl enable libvirtd
+
+      # Put your custom actions before this comment
+
+      - name: set-image-name-abroot
+        type: includes
+        includes:
+          - modules/80-set-image-abroot-config.yml
+
+      - name: cleanup
+        type: shell
+        commands:
+          - apt-get autoremove -y
+          - apt-get clean
+          - lpkg --lock
+
+      - name: fsguard
+        type: fsguard
+        CustomFsGuard: false
+        FsGuardLocation: "/usr/sbin/FsGuard"
+        GenerateKey: true
+        FilelistPaths: ["/usr/bin"]
+        modules:
+          - name: remove-prev-fsguard
+            type: shell
+            commands:
+              - rm -rf /FsGuard
+              - rm -f ./minisign.pub ./minisign.key
+              - chmod +x /usr/sbin/init
+
+      - name: cleanup2
+        type: shell
+        commands:
+          - rm -rf /tmp/*
+          - rm -rf /var/tmp/*
+          - rm -rf /sources
