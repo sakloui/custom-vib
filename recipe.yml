@@ -29,7 +29,7 @@ stages:
           packages:
             - qemu-kvm
             - qemu-system
-            - libvirt-daemon-system
+            - libvirt-daemon
             - libvirt-clients
             - bridge-utils
             - virt-manager
@@ -37,11 +37,6 @@ stages:
       - name: run-commands
         type: shell
         commands:
-          - addgroup libvirt-qemu
-          - addgroup libvirt
-          - addgroup libvirtd
-          - adduser libvirt-qemu libvirt-qemu
-          - adduser libvirt $USER
           - systemctl enable libvirtd
 
       # Put your custom actions before this comment
