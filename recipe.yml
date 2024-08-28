@@ -37,7 +37,6 @@ stages:
       - name: run-commands
         type: shell
         commands:
-          - adduser libvirt-qemu
           - addgroup libvirt-qemu
           - addgroup libvirt
           - addgroup libvirtd
