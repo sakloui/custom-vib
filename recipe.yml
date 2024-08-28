@@ -36,8 +36,6 @@ stages:
   - name: run-commands
     type: shell
     commands:
-    - usermod -a -G libvirt $USER 
-    - usermod -a -G kvm $USER
     - systemctl enable libvirtd 
     - systemctl start libvirtd
 
