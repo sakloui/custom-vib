@@ -37,7 +37,6 @@ stages:
     type: shell
     commands:
     - systemctl enable libvirtd 
-    - systemctl start libvirtd
 
   # Put your custom actions before this comment
 
